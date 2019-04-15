@@ -78,14 +78,17 @@ def multivariate_gaussian(pos, mu, Sigma):
 if __name__ == "__main__":
     #Annotation file directory
     annotation_dir = "C:/Users/talmezh/Desktop/Annee4/H19/IA 2/CIL-2/Annotation"
-    #Change the destination directory depending on your preference
-    save_dir = "C:/Users/talmezh/Desktop/Annee4/H19/IA 2/CIL-2/Output"
+    
     
     #Find all annotation files in directory
     files = [file for file in os.listdir(annotation_dir) if file.endswith('txt')]
     
     
-    for file in files:
+    for target_nb, file in enumerate(files):
+        
+        save_dir = annotation_dir + "/Output"+ str(target_nb)
+        if os.path.isdir(save_dir) != True:
+            os.mkdir(save_dir)
         #Load annotation coordinates as pandas DataFrame
         annot = pd.read_csv(os.path.join(annotation_dir,file),
                             sep="   ",
