@@ -3,11 +3,12 @@ import torch
 from torch.autograd import Variable
 import numpy as np
 import torch.nn.functional as F
-import torchvision.transforms as transforms
+#import torchvision.transforms as transforms
 from torch import nn
 from torch import optim
 import imageio
 import glob
+import time
 
 # test = torch.from_numpy(np.array(imageio.imread('C:/Users/DenisCorbin/Desktop/CIL-1/Data/0001.png'))).view(1,1,480,640).double()
 # conv = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double()
@@ -127,7 +128,7 @@ print('Done loading data')
 
 # %%
 
-def LLE(output, maxY_t,maxY_d,max_X_t,max_X_d):
+def LLE(output, maxY_t,maxY_d,max_X_t,max_X_d):    
     pixel_sum = output.sum()
     partial_sumx = 0
     for x in range(output.size(3)):
@@ -159,9 +160,11 @@ def train(model, train_loader, optimizer):
         maxY_d, max_X_d = np.where(output.squeeze() == output.max())
         dist = np.sqrt(np.power(max_X_d.squeeze()-max_X_t.squeeze(),2)+np.power(maxY_d.squeeze()-maxY_t.squeeze(),2))
         loss = F.mse_loss(output, target) + LLE(output, maxY_t,maxY_d,max_X_t,max_X_d)
-        print(loss.item() , dist)
+        print(loss.item() , dist, max_X_t, maxY_t, max_X_d, maxY_d)
         train_loss += loss.item()
+        t = time.time()
         loss.backward()
+        print(time.time() - t)
         optimizer.step()
     train_loss /= (dataSize / batch_size)
     # print('\n' + "train" + ' set: Average loss: {:.4f}\n'.format(train_loss))
