@@ -15,7 +15,7 @@ from random import shuffle
 # test = torch.from_numpy(np.array(imageio.imread('C:/Users/DenisCorbin/Desktop/CIL-1/Data/0001.png'))).view(1,1,480,640).double()
 # conv = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double()
 # result = conv(test)
-batch_size = 5
+batch_size = 23
 
 
 # %%
@@ -92,6 +92,7 @@ class CNNEncoderDecoder(nn.Module):
 
     def forward(self, x):
         x = self.encoder(x)
+        
         x = self.decoder(x)
         return x/x.max()
 
@@ -174,10 +175,10 @@ def train(model, train_loader, optimizer):
         #position = np.where(target_np == target_np.max())
         maxY_t, max_X_t = np.where(target.squeeze() == target.max())
         loss += F.mse_loss(output, target) + LLE(output, maxY_t,max_X_t)
-        train_loss += loss.item()
         #t = time.time()
         if batch_idx%batch_size==0:
             loss /= batch_size
+            train_loss += loss.item()
             loss.backward()
             #print(time.time() - t)
             optimizer.step()
@@ -199,7 +200,7 @@ def valid(model, valid_loader):
         maxY_t, max_X_t = np.where(target.squeeze() == target.max())
         loss = F.mse_loss(output, target) + LLE(output, maxY_t,max_X_t)
         valid_loss += loss.item()  # sum up batch loss
-        if loss.item() < 33:
+        if loss.item() <= 15:
             correct += 1;
         #pred = output.data.max(1, keepdim=True)[1]  # get the index of the max log-probability
         #correct += pred.eq(target.data.view_as(pred).long()).cpu().sum() / 480 / 640
@@ -249,7 +250,7 @@ def experiment(model, epochs=10, lr=0.001):
     ax1 = plt.subplot(111)
     ax1.plot(train_losses, 'b', valid_losses, 'm')
     ax1.set_title('Courbes d\'apprentissage: {}'.format(model.name))
-    ax1.set_ylabel('Log négatif de vraisemblance moyenne')
+    ax1.set_ylabel('LLE & MSE')
     ax1.set_xlabel('Epoch')
     ax1.legend(['train', 'validation'])
     plt.figure(2)
