@@ -10,9 +10,9 @@ target_valid = []
 data_test = []
 target_test = []
 compteur = 0
-for im_path in glob.glob("C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_Target*.pt"):
+for im_path in glob.glob("C:/Users/Denis/Desktop/LSTM_Input/LSTM_Target*.pt"):
     dataStr = im_path[im_path.find('Target_') +7 :-1] + 't'
-    im_pathData = 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_Data_' + dataStr
+    im_pathData = 'C:/Users/Denis/Desktop/LSTM_Input/LSTM_Data_' + dataStr
     if compteur < 100 :
         target_train.append(torch.load(im_path))
         data_train.append(torch.load(im_pathData))
