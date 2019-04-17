@@ -128,20 +128,36 @@ print('Done loading data')
 
 # %%
 
-def LLE(output, maxY_t,maxY_d,max_X_t,max_X_d):    
-    pixel_sum = output.sum()
+def LLE(output, maxY_t,max_X_t):    
     partial_sumx = 0
     for x in range(output.size(3)):
         partial_sumx += (output[0, 0, :, x].sum()) * x
-    x_pred = partial_sumx / pixel_sum
-
+    x_pred = partial_sumx / output.sum()
+    
     partial_sumy = 0
     for y in range(output.size(2)):
         partial_sumy += (output[0, 0, y, :].sum()) * y
+    y_pred = partial_sumy / output.sum()
+
+    LLE = torch.sqrt((torch.from_numpy(max_X_t).double() - x_pred).pow(2) + (torch.from_numpy(maxY_t).double() - y_pred).pow(2))
+    return LLE, x_pred, y_pred
+
+def LLE2(output, maxY_t,max_X_t):    
+    pixel_sum = output.sum()
+    
+    #Calcul du x predit
+    v_x = torch.arange(output.size(3)).double() #Vecteur allant de 0 a 639
+    partial_sumx = torch.mv(output.squeeze(),v_x).sum() #Somme ponderee selon x
+    x_pred = partial_sumx / pixel_sum
+    
+    output_T = torch.transpose(output,2,3) #Transposition de la matrice
+    v_y = torch.arange(output.size(2)).double()
+    partial_sumy = torch.mv(output_T.squeeze(),v_y).sum()
     y_pred = partial_sumy / pixel_sum
 
     LLE = torch.sqrt((torch.from_numpy(max_X_t).double() - x_pred).pow(2) + (torch.from_numpy(maxY_t).double() - y_pred).pow(2))
-    return LLE
+    return LLE, x_pred, y_pred
+
 
 
 def train(model, train_loader, optimizer):
@@ -157,14 +173,12 @@ def train(model, train_loader, optimizer):
         #target_np = target.detach().numpy().squeeze()
         #position = np.where(target_np == target_np.max())
         maxY_t, max_X_t = np.where(target.squeeze() == target.max())
-        maxY_d, max_X_d = np.where(output.squeeze() == output.max())
-        dist = np.sqrt(np.power(max_X_d.squeeze()-max_X_t.squeeze(),2)+np.power(maxY_d.squeeze()-maxY_t.squeeze(),2))
-        loss = F.mse_loss(output, target) + LLE(output, maxY_t,maxY_d,max_X_t,max_X_d)
-        print(loss.item() , dist, max_X_t, maxY_t, max_X_d, maxY_d)
+        loss, x_pred, y_pred = LLE2(output, maxY_t,max_X_t)#+F.mse_loss(output, target)
+#        loss = F.l1_loss(output,target) 
+#        loss = LLE_Denis(output, target)
+        print(loss.item() , max_X_t, maxY_t, x_pred.detach().numpy().squeeze(), y_pred.detach().numpy().squeeze())
         train_loss += loss.item()
-        t = time.time()
         loss.backward()
-        print(time.time() - t)
         optimizer.step()
     train_loss /= (dataSize / batch_size)
     # print('\n' + "train" + ' set: Average loss: {:.4f}\n'.format(train_loss))
@@ -180,18 +194,19 @@ def valid(model, valid_loader):
         #        data, target = Variable(valid_loader[batch_idx], volatile=True).cuda(),Variable(target_valid[batch_idx]).cuda() # if you have access to a gpu
         data, target = Variable(valid_loader[batch_idx], volatile=True), Variable(target_valid[batch_idx])
         output = model(data)
-        valid_loss += F.mse_loss(output, target, size_average=False).data.item()  # sum up batch loss
         maxY_t, max_X_t = np.where(target.squeeze() == target.max())
-        maxY_d, max_X_d = np.where(output.squeeze() == output.max())
-        dist = np.sqrt(np.power(max_X_d.squeeze()-max_X_t.squeeze(),2)+np.power(maxY_d.squeeze()-maxY_t.squeeze(),2))
-        if dist < 10:
+        loss, x_pred, y_pred = LLE2(output, maxY_t,max_X_t)#+F.mse_loss(output, target)
+        valid_loss += loss  # sum up batch loss
+        print(loss.item())
+        if loss.item() < 15:
             correct += 1;
+#        correct += 1
         #pred = output.data.max(1, keepdim=True)[1]  # get the index of the max log-probability
         #correct += pred.eq(target.data.view_as(pred).long()).cpu().sum() / 480 / 640
 
     valid_loss /= dataSize
     print('\n' + "valid" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        valid_loss, correct, dataSize,
+        float(valid_loss.detach().numpy().squeeze()), correct, dataSize,
         100. * correct / dataSize))
     return 100. * correct / dataSize, valid_loss
 
@@ -226,7 +241,7 @@ def experiment(model, epochs=10, lr=0.001):
         precision, valid_loss = valid(model, data_valid)
         valid_losses.append(valid_loss)
         valid_precision.append(precision)
-        if precision > best_precision:
+        if precision >= best_precision:
             best_precision = precision
             best_model = model
         best_model = model
@@ -251,8 +266,8 @@ def experiment(model, epochs=10, lr=0.001):
 # %%
 best_precision = 0
 for model in [CNNEncoderDecoder()]:  # add your models in the list
-    #    model.cuda()  # if you have access to a gpu
-    model, precision = experiment(model, epochs=2, lr=0.001)
+#    model.cuda()  # if you have access to a gpu
+    model, precision = experiment(model, epochs=10, lr=0.001)
     if precision > best_precision:
         best_precision = precision
         best_model = model
