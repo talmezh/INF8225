@@ -15,13 +15,22 @@ from random import shuffle
 # test = torch.from_numpy(np.array(imageio.imread('C:/Users/DenisCorbin/Desktop/CIL-1/Data/0001.png'))).view(1,1,480,640).double()
 # conv = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double()
 # result = conv(test)
-batch_size = 23
-
-
+batch_size = 100
+save = 0
+#typeTrain = 0
+#typeValid = 0
+#typeTest = 0
+typeData = 0
+typeTarget = 0
+itteration_data = 1
+itteration_target = 1
 # %%
 class CNNEncoderDecoder(nn.Module):
     def __init__(self):
         super(CNNEncoderDecoder, self).__init__()
+        self.itteration_data = itteration_data
+        self.itteration_target = itteration_target
+        self.type = ''
         self.name = "Encoder Decoder CNN"
         self.encoder = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
@@ -92,7 +101,19 @@ class CNNEncoderDecoder(nn.Module):
 
     def forward(self, x):
         x = self.encoder(x)
-        
+        if save:
+#            if typeTrain:
+#                self.type = 'Train_'
+#            if typeValid:
+#                self.type = 'Valid_'
+#            if typeTest:
+#                self.type = 'Test_'
+            if typeTarget:
+                torch.save(x, 'LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
+                self.itteration_target += 1
+            if typeData:
+                torch.save(x, 'LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
+                self.itteration_data += 1
         x = self.decoder(x)
         return x/x.max()
 
@@ -115,16 +136,21 @@ data_train = []
 target_train = []
 data_valid = []
 target_valid = []
+data_test = []
+target_test = []
 compteur = 0
 for im_path in glob.glob("C:/Users/DenisCorbin/Desktop/CIL1/Annotation/Output0/*.npy"):
     dataStr = im_path[im_path.find('\\') + 1:im_path.find('\\') + 5]
     im_pathData = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + dataStr + '.png'
-    if compteur % 5 == 0:
-        target_valid.append(torch.from_numpy(np.load(im_path)).view(1, 1, 480, 640).double())
-        data_valid.append(torch.from_numpy(np.array(imageio.imread(im_pathData)) / 255).view(1, 1, 480, 640).double())
-    else:
+    if compteur < 100 :
         target_train.append(torch.from_numpy(np.load(im_path)).view(1, 1, 480, 640).double())
         data_train.append(torch.from_numpy(np.array(imageio.imread(im_pathData)) / 255).view(1, 1, 480, 640).double())
+    if compteur >= 100 and compteur < 122:
+        target_valid.append(torch.from_numpy(np.load(im_path)).view(1, 1, 480, 640).double())
+        data_valid.append(torch.from_numpy(np.array(imageio.imread(im_pathData)) / 255).view(1, 1, 480, 640).double())
+    if compteur >= 122:
+        target_test.append(torch.from_numpy(np.load(im_path)).view(1, 1, 480, 640).double())
+        data_test.append(torch.from_numpy(np.array(imageio.imread(im_pathData)) / 255).view(1, 1, 480, 640).double())
     compteur += 1
 print('Done loading data')
 
@@ -164,7 +190,7 @@ def train(model, train_loader, optimizer):
     model.train()
     train_loss = 0
     loss = 0
-    dataSize = (len(train_loader))
+    dataSize = len(train_loader)
     for batch_idx in range(int(dataSize)):
         # data, target = Variable(data, volatile=True).cuda(), Variable(target).cuda() # if you have access to a gpu
         data, target = Variable(train_loader[batch_idx]), Variable(target_train[batch_idx])
@@ -192,7 +218,7 @@ def valid(model, valid_loader):
     model.eval()
     valid_loss = 0
     correct = 0
-    dataSize = (len(valid_loader))
+    dataSize = len(valid_loader)
     for batch_idx in range(dataSize):
         #        data, target = Variable(valid_loader[batch_idx], volatile=True).cuda(),Variable(target_valid[batch_idx]).cuda() # if you have access to a gpu
         data, target = Variable(valid_loader[batch_idx], volatile=True), Variable(target_valid[batch_idx])
@@ -202,11 +228,8 @@ def valid(model, valid_loader):
         valid_loss += loss.item()  # sum up batch loss
         if loss.item() <= 15:
             correct += 1;
-        #pred = output.data.max(1, keepdim=True)[1]  # get the index of the max log-probability
-        #correct += pred.eq(target.data.view_as(pred).long()).cpu().sum() / 480 / 640
-
     valid_loss /= dataSize
-    print('\n' + "valid" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+    print('\n' + "Valid" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         valid_loss, correct, dataSize,
         100. * correct / dataSize))
     return 100. * correct / dataSize, valid_loss
@@ -216,18 +239,20 @@ def test(model, test_loader):
     model.eval()
     test_loss = 0
     correct = 0
-    for data, target in test_loader:
-        #        data, target = Variable(data, volatile=True).cuda(), Variable(target).cuda() # if you have access to a gpu
-        data, target = Variable(data, volatile=True), Variable(target)
+    dataSize = len(test_loader)
+    for batch_idx in range(dataSize):
+          #        data, target = Variable(valid_loader[batch_idx], volatile=True).cuda(),Variable(target_valid[batch_idx]).cuda() # if you have access to a gpu
+        data, target = Variable(test_loader[batch_idx], volatile=True), Variable(target_test[batch_idx])
         output = model(data)
-        test_loss += F.nll_loss(output, target, size_average=False).data.item()  # sum up batch loss
-        pred = output.data.max(1, keepdim=True)[1]  # get the index of the max log-probability
-        correct += pred.eq(target.data.view_as(pred)).cpu().sum()
-
-    test_loss /= len(test_loader.dataset)
-    print('\n' + "test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
+        maxY_t, max_X_t = np.where(target.squeeze() == target.max())
+        loss = F.mse_loss(output, target) + LLE(output, maxY_t,max_X_t)
+        test_loss += loss.item()  # sum up batch loss
+        if loss.item() <= 50:
+            correct += 1;
+    test_loss /= dataSize
+    print('\n' + "Test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, dataSize,
+        100. * correct / dataSize))
 
 
 def experiment(model, epochs=10, lr=0.001):
@@ -242,10 +267,9 @@ def experiment(model, epochs=10, lr=0.001):
         precision, valid_loss = valid(model, data_valid)
         valid_losses.append(valid_loss)
         valid_precision.append(precision)
-        if precision > best_precision:
+        if precision >= best_precision:
             best_precision = precision
             best_model = model
-        best_model = model
     plt.figure(1)
     ax1 = plt.subplot(111)
     ax1.plot(train_losses, 'b', valid_losses, 'm')
@@ -268,17 +292,62 @@ def experiment(model, epochs=10, lr=0.001):
 best_precision = 0
 for model in [CNNEncoderDecoder()]:  # add your models in the list
     #    model.cuda()  # if you have access to a gpu
-    model, precision = experiment(model, epochs=20, lr=0.01)
-    if precision > best_precision:
-        best_precision = precision
-        best_model = model
+    model, precision = experiment(model, epochs=1, lr=0.01)
+test(model,data_test)
 
-valeurs = data_train[100]
-image = valeurs.detach().numpy().squeeze()
-valeurs = best_model(valeurs)
-image = valeurs.detach().numpy().squeeze()
 
-# test(best_model, test_loader)
+#%% Saving intermediate values
+print('SAVING')
+save = 1
 
-valeurs = target_valid[0]
-image = valeurs.detach().numpy().squeeze()
+# Train
+#typeTrain = 1
+for i in range(len(data_train)):
+    typeTarget = 1
+    model(target_train[i])
+    typeTarget = 0
+    typeData = 1
+    model(data_train[i])
+    typeData = 0
+#typeTrain = 0
+
+# Valid
+#typeValid = 1
+for i in range(len(data_valid)):
+    typeTarget = 1
+    model(target_valid[i])
+    typeTarget = 0
+    typeData = 1
+    model(data_valid[i])
+    typeData = 0
+#typeValid = 0
+
+# Test
+#typeTest = 1
+for i in range(len(data_test)):
+    typeTarget = 1
+    model(target_test[i])
+    typeTarget = 0
+    typeData = 1
+    model(data_test[i])
+    typeData = 0
+#typeTest= 0
+save = 0
+print('DONE SAVING')
+#%% Saving model
+torch.save(model.state_dict(), 'best_model.pth')
+
+
+#%% Loading model
+modeltest = CNNEncoderDecoder()
+modeltest.load_state_dict(torch.load('best_model.pth'))
+modeltest.eval()
+
+
+#%%
+#valeurs = data_train[100]
+#image = valeurs.detach().numpy().squeeze()
+#valeurs = best_model(valeurs)
+#image = valeurs.detach().numpy().squeeze()
+#valeurs = target_valid[0]
+#image = valeurs.detach().numpy().squeeze()
