@@ -109,10 +109,10 @@ class CNNEncoderDecoder(nn.Module):
 #            if typeTest:
 #                self.type = 'Test_'
             if typeTarget:
-                torch.save(x, 'LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
+                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
                 self.itteration_target += 1
             if typeData:
-                torch.save(x, 'LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
+                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
                 self.itteration_data += 1
         x = self.decoder(x)
         return x/x.max()
