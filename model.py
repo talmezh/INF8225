@@ -3,19 +3,15 @@ import torch
 from torch.autograd import Variable
 import numpy as np
 import torch.nn.functional as F
-import torchvision.transforms as transforms
 from torch import nn
 from torch import optim
 import imageio
 import glob
-import time
-from random import shuffle
-
 
 # test = torch.from_numpy(np.array(imageio.imread('C:/Users/DenisCorbin/Desktop/CIL-1/Data/0001.png'))).view(1,1,480,640).double()
 # conv = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double()
 # result = conv(test)
-batch_size = 100
+batch_size = 20
 save = 0
 #typeTrain = 0
 #typeValid = 0
@@ -109,10 +105,10 @@ class CNNEncoderDecoder(nn.Module):
 #            if typeTest:
 #                self.type = 'Test_'
             if typeTarget:
-                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
+                torch.save(x, 'C:/Users/Denis/Desktop/LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
                 self.itteration_target += 1
             if typeData:
-                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
+                torch.save(x, 'C:/Users/Denis/Desktop/LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
                 self.itteration_data += 1
         x = self.decoder(x)
         return x/x.max()
@@ -139,9 +135,9 @@ target_valid = []
 data_test = []
 target_test = []
 compteur = 0
-for im_path in glob.glob("C:/Users/DenisCorbin/Desktop/CIL1/Annotation/Output0/*.npy"):
+for im_path in glob.glob("C:/Users/Denis/Desktop/CIL1/Annotation/Output0/*.npy"):
     dataStr = im_path[im_path.find('\\') + 1:im_path.find('\\') + 5]
-    im_pathData = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + dataStr + '.png'
+    im_pathData = 'C:/Users/Denis/Desktop/CIL1/Data/' + dataStr + '.png'
     if compteur < 100 :
         target_train.append(torch.from_numpy(np.load(im_path)).view(1, 1, 480, 640).double())
         data_train.append(torch.from_numpy(np.array(imageio.imread(im_pathData)) / 255).view(1, 1, 480, 640).double())
@@ -182,7 +178,7 @@ def LLE(output, maxY_t,max_X_t):
     y_pred = partial_sumy / pixel_sum
 
     LLE = torch.sqrt((torch.from_numpy(max_X_t).double() - x_pred).pow(2) + (torch.from_numpy(maxY_t).double() - y_pred).pow(2))
-    print(LLE.item(), max_X_t, maxY_t, x_pred.item(), y_pred.item())
+#    print(LLE.item(), max_X_t, maxY_t, x_pred.item(), y_pred.item())
     return LLE
 
 
@@ -247,7 +243,7 @@ def test(model, test_loader):
         maxY_t, max_X_t = np.where(target.squeeze() == target.max())
         loss = F.mse_loss(output, target) + LLE(output, maxY_t,max_X_t)
         test_loss += loss.item()  # sum up batch loss
-        if loss.item() <= 50:
+        if loss.item() <= 15:
             correct += 1;
     test_loss /= dataSize
     print('\n' + "Test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
@@ -262,6 +258,7 @@ def experiment(model, epochs=10, lr=0.001):
     valid_precision = []
     optimizer = optim.Adagrad(model.parameters(), lr=lr)
     for epoch in range(1, epochs + 1):
+        print(epoch)
         model, train_loss = train(model, data_train, optimizer)
         train_losses.append(train_loss)
         precision, valid_loss = valid(model, data_valid)
@@ -292,7 +289,7 @@ def experiment(model, epochs=10, lr=0.001):
 best_precision = 0
 for model in [CNNEncoderDecoder()]:  # add your models in the list
     #    model.cuda()  # if you have access to a gpu
-    model, precision = experiment(model, epochs=1, lr=0.01)
+    model, precision = experiment(model, epochs=500, lr=0.01)
 test(model,data_test)
 
 
