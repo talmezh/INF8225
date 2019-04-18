@@ -188,7 +188,7 @@ def experiment(model, epochs=10, lr=0.001):
 best_precision = 0
 for model in [LSTM_predictor()]:  # add your models in the list
     #    model.cuda()  # if you have access to a gpu
-    model, precision = experiment(model, epochs=100, lr=0.0001)
+    model, precision = experiment(model, epochs=300, lr=0.001)
     if precision > best_precision:
         best_precision = precision
         best_model = model
