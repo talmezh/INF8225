@@ -258,6 +258,8 @@ def experiment(model, epochs=10, lr=0.001):
     valid_precision = []
     optimizer = optim.Adagrad(model.parameters(), lr=lr)
     for epoch in range(1, epochs + 1):
+        if epoch == int(0.65*epochs):
+            optimizer = optim.Adagrad(model.parameters(), lr=lr/10)
         print(epoch)
         model, train_loss = train(model, data_train, optimizer)
         train_losses.append(train_loss)
