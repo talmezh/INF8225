@@ -156,6 +156,8 @@ def experiment(model, epochs=10, lr=0.001):
     valid_precision = []
     optimizer = optim.Adagrad(model.parameters(), lr=lr)
     for epoch in range(1, epochs + 1):
+        if epoch == int(0.8*epochs):
+            optimizer = optim.Adagrad(model.parameters(), lr=lr/10)
         model, train_loss = train(model, data_train, optimizer)
         train_losses.append(train_loss)
         precision, valid_loss = valid(model, data_valid)
@@ -186,7 +188,7 @@ def experiment(model, epochs=10, lr=0.001):
 best_precision = 0
 for model in [LSTM_predictor()]:  # add your models in the list
     #    model.cuda()  # if you have access to a gpu
-    model, precision = experiment(model, epochs=100, lr=0.00001)
+    model, precision = experiment(model, epochs=100, lr=0.0001)
     if precision > best_precision:
         best_precision = precision
         best_model = model
