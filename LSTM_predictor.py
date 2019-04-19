@@ -112,7 +112,7 @@ class CNNEncoderDecoderMoreFeatures(nn.Module):
 
 #%%
 modelCNN = CNNEncoderDecoderMoreFeatures()
-modelCNN.load_state_dict(torch.load('best_ED_1000.pth'))
+modelCNN.load_state_dict(torch.load('best_ED_300_mb1_morefeatures.pth'))
 modelCNN.eval()
 # %%
 print('Loading data')
@@ -138,14 +138,14 @@ for im_path in fileNameTarget:
         z = torch.from_numpy(np.array(imageio.imread(filePathData2)) / 255).view(1, 1, 480, 640).double()
         targetTensor = torch.from_numpy(np.array(imageio.imread(filePathData1)) / 255).view(1, 1, 480, 640).double()
         if compteur < 100:
-            target_train.append(modelCNN.encoder(targetTensor).view(1,1,300).float())
-            data_train.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,1,300).float())
+            target_train.append(modelCNN.encoder(targetTensor).view(1,8,300).float())
+            data_train.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,8,300).float())
         if compteur >= 100 and compteur < 122:
-            target_valid.append(modelCNN.encoder(targetTensor).view(1,1,300).float())
-            data_valid.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,1,300).float())
+            target_valid.append(modelCNN.encoder(targetTensor).view(1,8,300).float())
+            data_valid.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,8,300).float())
         if compteur >= 122:
-            target_test.append(modelCNN.encoder(targetTensor).view(1,1,300).float())
-            data_test.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,1,300).float())
+            target_test.append(modelCNN.encoder(targetTensor).view(1,8,300).float())
+            data_test.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,8,300).float())
     compteur += 1
     print(compteur)
 print('Done loading data')
@@ -257,8 +257,6 @@ def experiment(model, epochs=10, lr=0.001):
     optimizer = optim.Adagrad(model.parameters(), lr=lr)
     for epoch in range(1, epochs + 1):
         print(epoch)
-        if epoch == int(0.5*epochs):
-            optimizer = optim.Adagrad(model.parameters(), lr=lr/10)
         if epoch == int(0.75*epochs):
             optimizer = optim.Adagrad(model.parameters(), lr=lr/10)
         model, train_loss = train(model, data_train, optimizer)
@@ -297,5 +295,5 @@ for model in [LSTM_predictor()]:  # add your models in the list
         best_model = model
         
 test(model,data_test)
-torch.save(model.state_dict(), 'best_model_LSTM_batch1.pth')
+torch.save(model.state_dict(), 'best_model_LSTM_batch1_morefeatures.pth')
 
