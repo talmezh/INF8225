@@ -102,17 +102,17 @@ class CNNEncoderDecoderMoreFeatures(nn.Module):
         x = self.encoder(x)
         if save:
             if typeTarget:
-                torch.save(x, 'C:/Users/Denis/Desktop/LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
+                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
                 self.itteration_target += 1
             if typeData:
-                torch.save(x, 'C:/Users/Denis/Desktop/LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
+                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
                 self.itteration_data += 1
         x = self.decoder(x)
         return x/x.max()
 
 #%%
 modelCNN = CNNEncoderDecoderMoreFeatures()
-modelCNN.load_state_dict(torch.load('C:/Users/Denis/Documents/GitHub/INF8225/best_ED_300_mb1_morefeatures.pth'))
+modelCNN.load_state_dict(torch.load('C:/Users/DenisCorbin/Documents/GitHub/INF8225/best_ED_300_mb1_morefeatures.pth'))
 modelCNN.eval()
 
 #%%
@@ -125,15 +125,15 @@ data_test = []
 target_test = []
 compteur = 0 
 fileNameData= []
-fileNameTarget  = glob.glob("C:/Users/Denis/Desktop/CIL1/Annotation/Output0/*.npy")
+fileNameTarget  = glob.glob("C:/Users/DenisCorbin/Desktop/CIL1/Annotation/Output0/*.npy")
 for im_path in fileNameTarget:
     dataStr = im_path[im_path.find('\\') + 1:im_path.find('\\') + 5]
     indice = int(dataStr)
     if indice >= 4:
-        filePathData1 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-0).zfill(4) + '.png'
-        filePathData2 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-1).zfill(4) + '.png'
-        filePathData3 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-2).zfill(4) + '.png'
-        filePathData4 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-3).zfill(4) + '.png'
+        filePathData1 = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + str(indice-0).zfill(4) + '.png'
+        filePathData2 = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + str(indice-1).zfill(4) + '.png'
+        filePathData3 = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + str(indice-2).zfill(4) + '.png'
+        filePathData4 = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + str(indice-3).zfill(4) + '.png'
         x = torch.from_numpy(np.array(imageio.imread(filePathData4)) / 255).view(1, 1, 480, 640).double()
         y = torch.from_numpy(np.array(imageio.imread(filePathData3)) / 255).view(1, 1, 480, 640).double()
         z = torch.from_numpy(np.array(imageio.imread(filePathData2)) / 255).view(1, 1, 480, 640).double()
@@ -329,7 +329,7 @@ def valid(model, valid_loader):
         data, target = Variable(valid_loader[batch_idx]), Variable(target_valid[batch_idx])
         output = model(modelCNN.encoder(data).view(3,8,300).float())
         loss = F.mse_loss(output, modelCNN.encoder(target).view(1,8,300).float())
-        if (1-loss.item()*100)>0.98:
+        if (1-loss.item()*100)>0.96:
             correct += 1
         valid_loss += loss.item()  # sum up batch loss
 #        pred = output.data.max(1, keepdim=True)[1]  # get the index of the max log-probability
@@ -357,7 +357,7 @@ def test(model, test_loader):
         loss = F.mse_loss(output, modelCNN.encoder(target).view(1,8,300).float())
         test_loss += loss.item()  # sum up batch loss
         print(loss.item())
-        if (1-loss.item()*100)>0.975:
+        if (1-loss.item()*100)>0.96:
             correct += 1
     test_loss /= dataSize
     print('\n' + "Test" + ' set: Average loss: {:.15f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
@@ -382,7 +382,6 @@ def experiment(model, epochs=10, lr=0.001):
         if precision > best_precision:
             best_precision = precision
             best_model = model
-        best_model = model
     plt.figure(1)
     ax1 = plt.subplot(111)
     ax1.plot(train_losses, 'b', valid_losses, 'm')
@@ -404,7 +403,7 @@ def experiment(model, epochs=10, lr=0.001):
 best_precision = 0
 for model in [LSTM_predictor()]:  # add your models in the list
     #    model.cuda()  # if you have access to a gpu
-    model, precision = experiment(model, epochs=1, lr=0.001)
+    model, precision = experiment(model, epochs=300, lr=0.01)
     if precision > best_precision:
         best_precision = precision
         best_model = model
