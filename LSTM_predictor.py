@@ -25,71 +25,71 @@ typeTarget = 0
 itteration_data = 1
 itteration_target = 1
 # %%
-class CNNEncoderDecoder(nn.Module):
+class CNNEncoderDecoderMoreFeatures(nn.Module):
     def __init__(self):
-        super(CNNEncoderDecoder, self).__init__()
+        super(CNNEncoderDecoderMoreFeatures, self).__init__()
         self.itteration_data = itteration_data
         self.itteration_target = itteration_target
         self.type = ''
-        self.name = "Encoder Decoder CNN"
+        self.name = "Encoder Decoder CNN with more features"
         self.encoder = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(1).double(),
+            nn.Conv2d(in_channels=1, out_channels=2, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(2).double(),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(1).double(),
+            nn.Conv2d(in_channels=2, out_channels=2, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(2).double(),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(1).double(),
+            nn.Conv2d(in_channels=2, out_channels=4, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(4).double(),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(1).double(),
+            nn.Conv2d(in_channels=4, out_channels=4, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(4).double(),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(1).double(),
+            nn.Conv2d(in_channels=4, out_channels=8, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(8).double(),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(1).double(),
+            nn.Conv2d(in_channels=8, out_channels=8, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(8).double(),
             nn.ReLU(inplace=True)
 
         )
         self.decoder = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(1).double(),
+            nn.Conv2d(in_channels=8, out_channels=8, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(8).double(),
             nn.ReLU(inplace=True),
 
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(1).double(),
+            nn.Conv2d(in_channels=8, out_channels=4, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(4).double(),
             nn.ReLU(inplace=True),
 
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(1).double(),
+            nn.Conv2d(in_channels=4, out_channels=4, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(4).double(),
             nn.ReLU(inplace=True),
 
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(1).double(),
+            nn.Conv2d(in_channels=4, out_channels=2, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(2).double(),
             nn.ReLU(inplace=True),
 
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(1).double(),
+            nn.Conv2d(in_channels=2, out_channels=2, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(2).double(),
             nn.ReLU(inplace=True),
 
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.Conv2d(in_channels=2, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
             nn.BatchNorm2d(1).double(),
             nn.ReLU(inplace=True),
 
@@ -98,27 +98,20 @@ class CNNEncoderDecoder(nn.Module):
             nn.ReLU(inplace=True)
 
         )
-
     def forward(self, x):
         x = self.encoder(x)
         if save:
-#            if typeTrain:
-#                self.type = 'Train_'
-#            if typeValid:
-#                self.type = 'Valid_'
-#            if typeTest:
-#                self.type = 'Test_'
             if typeTarget:
-                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
+                torch.save(x, 'C:/Users/Denis/Desktop/LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
                 self.itteration_target += 1
             if typeData:
-                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
+                torch.save(x, 'C:/Users/Denis/Desktop/LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
                 self.itteration_data += 1
         x = self.decoder(x)
         return x/x.max()
 
 #%%
-modelCNN = CNNEncoderDecoder()
+modelCNN = CNNEncoderDecoderMoreFeatures()
 modelCNN.load_state_dict(torch.load('best_ED_1000.pth'))
 modelCNN.eval()
 # %%
