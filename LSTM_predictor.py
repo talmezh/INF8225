@@ -112,9 +112,10 @@ class CNNEncoderDecoderMoreFeatures(nn.Module):
 
 #%%
 modelCNN = CNNEncoderDecoderMoreFeatures()
-modelCNN.load_state_dict(torch.load('best_ED_300_mb1_morefeatures.pth'))
+modelCNN.load_state_dict(torch.load('C:/Users/Denis/Documents/GitHub/INF8225/best_ED_300_mb1_morefeatures.pth'))
 modelCNN.eval()
-# %%
+
+#%%
 print('Loading data')
 data_train = []
 target_train = []
@@ -123,32 +124,145 @@ target_valid = []
 data_test = []
 target_test = []
 compteur = 0 
-fileNameTarget  = glob.glob("C:/Users/DenisCorbin/Desktop/CIL1/Annotation/Output0/*.npy")
 fileNameData= []
+fileNameTarget  = glob.glob("C:/Users/Denis/Desktop/CIL1/Annotation/Output0/*.npy")
 for im_path in fileNameTarget:
     dataStr = im_path[im_path.find('\\') + 1:im_path.find('\\') + 5]
     indice = int(dataStr)
     if indice >= 4:
-        filePathData1 = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + str(indice-0).zfill(4) + '.png'
-        filePathData2 = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + str(indice-1).zfill(4) + '.png'
-        filePathData3 = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + str(indice-2).zfill(4) + '.png'
-        filePathData4 = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + str(indice-3).zfill(4) + '.png'
+        filePathData1 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-0).zfill(4) + '.png'
+        filePathData2 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-1).zfill(4) + '.png'
+        filePathData3 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-2).zfill(4) + '.png'
+        filePathData4 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-3).zfill(4) + '.png'
         x = torch.from_numpy(np.array(imageio.imread(filePathData4)) / 255).view(1, 1, 480, 640).double()
         y = torch.from_numpy(np.array(imageio.imread(filePathData3)) / 255).view(1, 1, 480, 640).double()
         z = torch.from_numpy(np.array(imageio.imread(filePathData2)) / 255).view(1, 1, 480, 640).double()
         targetTensor = torch.from_numpy(np.array(imageio.imread(filePathData1)) / 255).view(1, 1, 480, 640).double()
         if compteur < 100:
-            target_train.append(modelCNN.encoder(targetTensor).view(1,8,300).float())
-            data_train.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,8,300).float())
+            target_train.append(targetTensor)
+            data_train.append(torch.cat([x,y,z]))
         if compteur >= 100 and compteur < 122:
-            target_valid.append(modelCNN.encoder(targetTensor).view(1,8,300).float())
-            data_valid.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,8,300).float())
+            target_valid.append(targetTensor)
+            data_valid.append(torch.cat([x,y,z]))
         if compteur >= 122:
-            target_test.append(modelCNN.encoder(targetTensor).view(1,8,300).float())
-            data_test.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,8,300).float())
+            target_test.append(targetTensor)
+            data_test.append(torch.cat([x,y,z]))
     compteur += 1
     print(compteur)
 print('Done loading data')
+# %%
+#print('Loading data')
+#data_train = []
+#target_train = []
+#data_valid = []
+#target_valid = []
+#data_test = []
+#target_test = []
+#compteur = 0 
+#fileNameData= []
+#for im_path in fileNameTarget:
+#    dataStr = im_path[im_path.find('\\') + 1:im_path.find('\\') + 5]
+#    indice = int(dataStr)
+#    if indice >= 4:
+#        filePathData1 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-0).zfill(4) + '.png'
+#        filePathData2 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-1).zfill(4) + '.png'
+#        filePathData3 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-2).zfill(4) + '.png'
+#        filePathData4 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-3).zfill(4) + '.png'
+#        x = torch.from_numpy(np.array(imageio.imread(filePathData4)) / 255).view(1, 1, 480, 640).double()
+#        y = torch.from_numpy(np.array(imageio.imread(filePathData3)) / 255).view(1, 1, 480, 640).double()
+#        z = torch.from_numpy(np.array(imageio.imread(filePathData2)) / 255).view(1, 1, 480, 640).double()
+#        targetTensor = torch.from_numpy(np.array(imageio.imread(filePathData1)) / 255).view(1, 1, 480, 640).double()
+#        if compteur < 100:
+#            target_train.append(modelCNN.encoder(targetTensor).view(1,8,300).float())
+#            data_train.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,8,300).float())
+#        if compteur >= 100 and compteur < 122:
+#            target_valid.append(modelCNN.encoder(targetTensor).view(1,8,300).float())
+#            data_valid.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,8,300).float())
+#        if compteur >= 122:
+#            target_test.append(modelCNN.encoder(targetTensor).view(1,8,300).float())
+#            data_test.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,8,300).float())
+#    compteur += 1
+#    print(compteur)
+#print('Done loading data')
+# %%
+#def load_trainData():
+#    print('Loading data')
+#    fileNameTarget  = glob.glob("C:/Users/Denis/Desktop/CIL1/Annotation/Output0/*.npy")
+#    compteur = 0
+#    data_train = []
+#    target_train = []
+#    for im_path in fileNameTarget:
+#        dataStr = im_path[im_path.find('\\') + 1:im_path.find('\\') + 5]
+#        indice = int(dataStr)
+#        if indice >= 4:
+#            filePathData1 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-0).zfill(4) + '.png'
+#            filePathData2 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-1).zfill(4) + '.png'
+#            filePathData3 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-2).zfill(4) + '.png'
+#            filePathData4 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-3).zfill(4) + '.png'
+#            x = torch.from_numpy(np.array(imageio.imread(filePathData4)) / 255).view(1, 1, 480, 640).double()
+#            y = torch.from_numpy(np.array(imageio.imread(filePathData3)) / 255).view(1, 1, 480, 640).double()
+#            z = torch.from_numpy(np.array(imageio.imread(filePathData2)) / 255).view(1, 1, 480, 640).double()
+#            targetTensor = torch.from_numpy(np.array(imageio.imread(filePathData1)) / 255).view(1, 1, 480, 640).double()
+#            if compteur < 100:
+#                target_train.append(modelCNN.encoder(targetTensor).view(1,8,300).float())
+#                data_train.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,8,300).float())
+#        compteur += 1
+#        print(compteur)
+#    print('Done loading data')
+#    return data_train, target_train
+#
+## %%
+#def load_validData():
+#    print('Loading data')
+#    fileNameTarget  = glob.glob("C:/Users/Denis/Desktop/CIL1/Annotation/Output0/*.npy")
+#    compteur = 0
+#    data_valid = []
+#    target_valid = []
+#    for im_path in fileNameTarget:
+#        dataStr = im_path[im_path.find('\\') + 1:im_path.find('\\') + 5]
+#        indice = int(dataStr)
+#        if indice >= 4:
+#            filePathData1 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-0).zfill(4) + '.png'
+#            filePathData2 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-1).zfill(4) + '.png'
+#            filePathData3 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-2).zfill(4) + '.png'
+#            filePathData4 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-3).zfill(4) + '.png'
+#            x = torch.from_numpy(np.array(imageio.imread(filePathData4)) / 255).view(1, 1, 480, 640).double()
+#            y = torch.from_numpy(np.array(imageio.imread(filePathData3)) / 255).view(1, 1, 480, 640).double()
+#            z = torch.from_numpy(np.array(imageio.imread(filePathData2)) / 255).view(1, 1, 480, 640).double()
+#            targetTensor = torch.from_numpy(np.array(imageio.imread(filePathData1)) / 255).view(1, 1, 480, 640).double()
+#            if compteur >= 100 and compteur < 122:
+#                target_valid.append(modelCNN.encoder(targetTensor).view(1,8,300).float())
+#                data_valid.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,8,300).float())
+#        compteur += 1
+#        print(compteur)
+#    print('Done loading data')
+#    return data_valid, target_valid
+## %%
+#def load_testData():
+#    print('Loading data')
+#    fileNameTarget  = glob.glob("C:/Users/Denis/Desktop/CIL1/Annotation/Output0/*.npy")
+#    compteur = 0
+#    data_test = []
+#    target_test = []
+#    for im_path in fileNameTarget:
+#        dataStr = im_path[im_path.find('\\') + 1:im_path.find('\\') + 5]
+#        indice = int(dataStr)
+#        if indice >= 4:
+#            filePathData1 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-0).zfill(4) + '.png'
+#            filePathData2 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-1).zfill(4) + '.png'
+#            filePathData3 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-2).zfill(4) + '.png'
+#            filePathData4 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-3).zfill(4) + '.png'
+#            x = torch.from_numpy(np.array(imageio.imread(filePathData4)) / 255).view(1, 1, 480, 640).double()
+#            y = torch.from_numpy(np.array(imageio.imread(filePathData3)) / 255).view(1, 1, 480, 640).double()
+#            z = torch.from_numpy(np.array(imageio.imread(filePathData2)) / 255).view(1, 1, 480, 640).double()
+#            targetTensor = torch.from_numpy(np.array(imageio.imread(filePathData1)) / 255).view(1, 1, 480, 640).double()
+#            if compteur >= 122:
+#                target_test.append(modelCNN.encoder(targetTensor).view(1,8,300).float())
+#                data_test.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,8,300).float())
+#        compteur += 1
+#        print(compteur)
+#    print('Done loading data')
+#    return data_test, target_test
 # %%
 class LSTM_predictor(nn.Module):
     def __init__(self):
@@ -192,9 +306,9 @@ def train(model, train_loader, optimizer):
         # data, target = Variable(data, volatile=True).cuda(), Variable(target).cuda() # if you have access to a gpu
         data, target = Variable(train_loader[batch_idx]), Variable(target_train[batch_idx])
         optimizer.zero_grad()
-        output = model(data)  # calls the forward function
+        output = model(modelCNN.encoder(data).view(3,8,300).float())  # calls the forward function
 
-        loss += F.mse_loss(output, target)
+        loss += F.mse_loss(output, modelCNN.encoder(target).view(1,8,300).float())
 
         if batch_idx%batch_size==0:
             loss /= batch_size
@@ -213,8 +327,8 @@ def valid(model, valid_loader):
     for batch_idx in range(dataSize):
         #data, target = Variable(valid_loader[batch_idx]).cuda(),Variable(target_valid[batch_idx]).cuda() # if you have access to a gpu
         data, target = Variable(valid_loader[batch_idx]), Variable(target_valid[batch_idx])
-        output = model(data)
-        loss = F.mse_loss(output, target)
+        output = model(modelCNN.encoder(data).view(3,8,300).float())
+        loss = F.mse_loss(output, modelCNN.encoder(target).view(1,8,300).float())
         if (1-loss.item()*100)>0.98:
             correct += 1
         valid_loss += loss.item()  # sum up batch loss
@@ -239,10 +353,11 @@ def test(model, test_loader):
     for batch_idx in range(dataSize):
           #        data, target = Variable(valid_loader[batch_idx], volatile=True).cuda(),Variable(target_valid[batch_idx]).cuda() # if you have access to a gpu
         data, target = Variable(test_loader[batch_idx], volatile=True), Variable(target_test[batch_idx])
-        output = model(data)
-        loss = F.mse_loss(output, target)
+        output = model(modelCNN.encoder(data).view(3,8,300).float())
+        loss = F.mse_loss(output, modelCNN.encoder(target).view(1,8,300).float())
         test_loss += loss.item()  # sum up batch loss
-        if (1-loss.item()*100)>0.98:
+        print(loss.item())
+        if (1-loss.item()*100)>0.975:
             correct += 1
     test_loss /= dataSize
     print('\n' + "Test" + ' set: Average loss: {:.15f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
@@ -289,11 +404,11 @@ def experiment(model, epochs=10, lr=0.001):
 best_precision = 0
 for model in [LSTM_predictor()]:  # add your models in the list
     #    model.cuda()  # if you have access to a gpu
-    model, precision = experiment(model, epochs=300, lr=0.001)
+    model, precision = experiment(model, epochs=1, lr=0.001)
     if precision > best_precision:
         best_precision = precision
         best_model = model
-        
+
 test(model,data_test)
 torch.save(model.state_dict(), 'best_model_LSTM_batch1_morefeatures.pth')
 
