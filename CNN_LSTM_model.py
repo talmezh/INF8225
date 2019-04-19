@@ -150,12 +150,12 @@ def test(CNN, LSTM, test_data, test_data_cnn, test_target):
         current_frame = Variable(test_data_cnn[index]) #tensor(1,1,480,640)
         target = Variable(test_target[index])
         
-        ft0_CNN = CNN.encoder(current_frame).view(300) #tensor(300)
+        ft0_CNN = CNN.encoder(current_frame).view(8,300) #tensor(300)
         
-        ft0_LSTM = LSTM(previous_f).squeeze().double() #tensor(300)
+        ft0_LSTM = LSTM(CNN.encoder(previous_f).view(3,8,300).float()).double() #tensor(300)
         
         ft0 = comb_fact*ft0_LSTM + (1-comb_fact)*ft0_CNN
-        ft0 = ft0.view(1,1,15,20)
+        ft0 = ft0.view(1,8,15,20)
         
         output = CNN.decoder(ft0)
         output = output/output.max()
@@ -174,7 +174,7 @@ CNN = CNNEncoderDecoderMoreFeatures()
 CNN.load_state_dict(torch.load('best_ED_300_mb1_morefeatures.pth'))
 
 LSTM = LSTM_predictor()
-LSTM.load_state_dict(torch.load('best_model_LSTM_batch1.pth'))
+LSTM.load_state_dict(torch.load('best_model_LSTM_batch1_morefeatures.pth'))
 
 #Load data
 print('Loading data')
@@ -183,18 +183,20 @@ target_test = []
 data_test_CNN = []
 target_test_CNN = []
 compteur = 0 
-fileNameTarget = glob.glob("C:/Users/Denis/Desktop/LSTM_Input/LSTM_Target*.pt")
+fileNameTarget  = glob.glob("C:/Users/Denis/Desktop/CIL1/Annotation/Output0/*.npy")
 fileNameData= []
-for im_path in glob.glob("C:/Users/Denis/Desktop/LSTM_Input/LSTM_Target*.pt"):
-    dataStr = im_path[im_path.find('Target_') +7 :-1] + 't'
-    fileNameData.append('C:/Users/Denis/Desktop/LSTM_Input/LSTM_Data_' + dataStr)
+for im_path in fileNameTarget:
     dataStr = im_path[im_path.find('\\') + 1:im_path.find('\\') + 5]
+    indice = int(dataStr)
     im_pathData = 'C:/Users/Denis/Desktop/CIL1/Data/' + dataStr + '.png'
     if compteur >= 122:
-        x = torch.load(fileNameData[compteur-4]).float()
-        y = torch.load(fileNameData[compteur-3]).float()
-        z = torch.load(fileNameData[compteur-2]).float()
-        data_test.append(torch.cat([x,y,z]).view(3,1,300))
+        filePathData2 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-1).zfill(4) + '.png'
+        filePathData3 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-2).zfill(4) + '.png'
+        filePathData4 = 'C:/Users/Denis/Desktop/CIL1/Data/' + str(indice-3).zfill(4) + '.png'
+        x = torch.from_numpy(np.array(imageio.imread(filePathData4)) / 255).view(1, 1, 480, 640).double()
+        y = torch.from_numpy(np.array(imageio.imread(filePathData3)) / 255).view(1, 1, 480, 640).double()
+        z = torch.from_numpy(np.array(imageio.imread(filePathData2)) / 255).view(1, 1, 480, 640).double()
+        data_test.append(torch.cat([x,y,z]))
         target_test_CNN.append(torch.from_numpy(np.load(im_path)).view(1, 1, 480, 640).double())
         data_test_CNN.append(torch.from_numpy(np.array(imageio.imread(im_pathData)) / 255).view(1, 1, 480, 640).double())
     compteur += 1
