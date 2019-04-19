@@ -11,7 +11,7 @@ import glob
 # test = torch.from_numpy(np.array(imageio.imread('C:/Users/DenisCorbin/Desktop/CIL-1/Data/0001.png'))).view(1,1,480,640).double()
 # conv = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double()
 # result = conv(test)
-batch_size = 20
+batch_size = 1
 save = 0
 #typeTrain = 0
 #typeValid = 0
@@ -105,10 +105,10 @@ class CNNEncoderDecoder(nn.Module):
 #            if typeTest:
 #                self.type = 'Test_'
             if typeTarget:
-                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
+                torch.save(x, 'C:/Users/Denis/Desktop/LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
                 self.itteration_target += 1
             if typeData:
-                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
+                torch.save(x, 'C:/Users/Denis/Desktop/LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
                 self.itteration_data += 1
         x = self.decoder(x)
         return x/x.max()
@@ -205,13 +205,100 @@ class CNNEncoderDecoderDropout(nn.Module):
         x = self.encoder(x)
         if save:
             if typeTarget:
-                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
+                torch.save(x, 'C:/Users/Denis/Desktop/LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
                 self.itteration_target += 1
             if typeData:
-                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
+                torch.save(x, 'C:/Users/Denis/Desktop/LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
                 self.itteration_data += 1
         x = self.decoder(x)
         return x/x.max()
+
+# %%
+class CNNEncoderDecoderMoreFeatures(nn.Module):
+    def __init__(self):
+        super(CNNEncoderDecoderMoreFeatures, self).__init__()
+        self.itteration_data = itteration_data
+        self.itteration_target = itteration_target
+        self.type = ''
+        self.name = "Encoder Decoder CNN with more features"
+        self.encoder = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=2, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(2).double(),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.Conv2d(in_channels=2, out_channels=2, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(2).double(),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.Conv2d(in_channels=2, out_channels=4, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(4).double(),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.Conv2d(in_channels=4, out_channels=4, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(4).double(),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.Conv2d(in_channels=4, out_channels=8, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(8).double(),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.Conv2d(in_channels=8, out_channels=8, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(8).double(),
+            nn.ReLU(inplace=True)
+
+        )
+        self.decoder = nn.Sequential(
+            nn.Conv2d(in_channels=8, out_channels=8, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(8).double(),
+            nn.ReLU(inplace=True),
+
+            nn.Upsample(scale_factor=2),
+            nn.Conv2d(in_channels=8, out_channels=4, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(4).double(),
+            nn.ReLU(inplace=True),
+
+            nn.Upsample(scale_factor=2),
+            nn.Conv2d(in_channels=4, out_channels=4, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(4).double(),
+            nn.ReLU(inplace=True),
+
+            nn.Upsample(scale_factor=2),
+            nn.Conv2d(in_channels=4, out_channels=2, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(2).double(),
+            nn.ReLU(inplace=True),
+
+            nn.Upsample(scale_factor=2),
+            nn.Conv2d(in_channels=2, out_channels=2, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(2).double(),
+            nn.ReLU(inplace=True),
+
+            nn.Upsample(scale_factor=2),
+            nn.Conv2d(in_channels=2, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True)
+
+        )
+    def forward(self, x):
+        x = self.encoder(x)
+        if save:
+            if typeTarget:
+                torch.save(x, 'C:/Users/Denis/Desktop/LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
+                self.itteration_target += 1
+            if typeData:
+                torch.save(x, 'C:/Users/Denis/Desktop/LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
+                self.itteration_data += 1
+        x = self.decoder(x)
+        return x/x.max()
+
 
 # %%
 # model = CNNEncoderDecoder()
@@ -234,9 +321,9 @@ target_valid = []
 data_test = []
 target_test = []
 compteur = 0
-for im_path in glob.glob("C:/Users/DenisCorbin/Desktop/CIL1/Annotation/Output0/*.npy"):
+for im_path in glob.glob("C:/Users/Denis/Desktop/CIL1/Annotation/Output0/*.npy"):
     dataStr = im_path[im_path.find('\\') + 1:im_path.find('\\') + 5]
-    im_pathData = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + dataStr + '.png'
+    im_pathData = 'C:/Users/Denis/Desktop/CIL1/Data/' + dataStr + '.png'
     if compteur < 100 :
         target_train.append(torch.from_numpy(np.load(im_path)).view(1, 1, 480, 640).double())
         data_train.append(torch.from_numpy(np.array(imageio.imread(im_pathData)) / 255).view(1, 1, 480, 640).double())
@@ -357,7 +444,7 @@ def experiment(model, epochs=10, lr=0.001):
     valid_precision = []
     optimizer = optim.Adagrad(model.parameters(), lr=lr)
     for epoch in range(1, epochs + 1):
-        if epoch == int(0.65*epochs):
+        if epoch == int(0.75*epochs):
             optimizer = optim.Adagrad(model.parameters(), lr=lr/10)
         print(epoch)
         model, train_loss = train(model, data_train, optimizer)
@@ -388,7 +475,7 @@ def experiment(model, epochs=10, lr=0.001):
 
 # %%
 best_precision = 0
-for model in [CNNEncoderDecoderDropout()]:  # add your models in the list
+for model in [CNNEncoderDecoderMoreFeatures()]:  # add your models in the list
     #    model.cuda()  # if you have access to a gpu
     model, precision = experiment(model, epochs=300, lr=0.01)
 test(model,data_test)
@@ -433,7 +520,7 @@ for i in range(len(data_test)):
 save = 0
 print('DONE SAVING')
 #%% Saving model
-torch.save(model.state_dict(), 'best_ED_10_dropout.pth')
+torch.save(model.state_dict(), 'best_ED_300_mb1_morefeatures.pth')
 
 
 #%% Loading model
