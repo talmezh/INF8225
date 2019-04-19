@@ -19,6 +19,108 @@ import time
 from random import shuffle
 
 batch_size = 1
+save = 0
+typeData = 0
+typeTarget = 0
+itteration_data = 1
+itteration_target = 1
+# %%
+class CNNEncoderDecoder(nn.Module):
+    def __init__(self):
+        super(CNNEncoderDecoder, self).__init__()
+        self.itteration_data = itteration_data
+        self.itteration_target = itteration_target
+        self.type = ''
+        self.name = "Encoder Decoder CNN"
+        self.encoder = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True)
+
+        )
+        self.decoder = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True),
+
+            nn.Upsample(scale_factor=2),
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True),
+
+            nn.Upsample(scale_factor=2),
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True),
+
+            nn.Upsample(scale_factor=2),
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True),
+
+            nn.Upsample(scale_factor=2),
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True),
+
+            nn.Upsample(scale_factor=2),
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(1).double(),
+            nn.ReLU(inplace=True)
+
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        if save:
+#            if typeTrain:
+#                self.type = 'Train_'
+#            if typeValid:
+#                self.type = 'Valid_'
+#            if typeTest:
+#                self.type = 'Test_'
+            if typeTarget:
+                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_' +'Target_' + str(self.itteration_target).zfill(3) +'.pt')
+                self.itteration_target += 1
+            if typeData:
+                torch.save(x, 'C:/Users/DenisCorbin/Desktop/LSTM_Input/LSTM_' +'Data_' + str(self.itteration_data).zfill(3) +'.pt')
+                self.itteration_data += 1
+        x = self.decoder(x)
+        return x/x.max()
+
+#%%
+modelCNN = CNNEncoderDecoder()
+modelCNN.load_state_dict(torch.load('best_ED_1000.pth'))
+modelCNN.eval()
 # %%
 print('Loading data')
 data_train = []
@@ -28,26 +130,31 @@ target_valid = []
 data_test = []
 target_test = []
 compteur = 0 
-fileNameTarget = glob.glob("C:/Users/Denis/Desktop/LSTM_Input/LSTM_Target*.pt")
+fileNameTarget  = glob.glob("C:/Users/DenisCorbin/Desktop/CIL1/Annotation/Output0/*.npy")
 fileNameData= []
-for im_path in glob.glob("C:/Users/Denis/Desktop/LSTM_Input/LSTM_Target*.pt"):
-    dataStr = im_path[im_path.find('Target_') +7 :-1] + 't'
-    fileNameData.append('C:/Users/Denis/Desktop/LSTM_Input/LSTM_Data_' + dataStr)
-    if compteur > 3:
-        x = torch.load(fileNameData[compteur-4]).float()
-        y = torch.load(fileNameData[compteur-3]).float()
-        z = torch.load(fileNameData[compteur-2]).float()
-        w = torch.load(fileNameTarget[compteur-1]).float()
+for im_path in fileNameTarget:
+    dataStr = im_path[im_path.find('\\') + 1:im_path.find('\\') + 5]
+    indice = int(dataStr)
+    if indice >= 4:
+        filePathData1 = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + str(indice-0).zfill(4) + '.png'
+        filePathData2 = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + str(indice-1).zfill(4) + '.png'
+        filePathData3 = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + str(indice-2).zfill(4) + '.png'
+        filePathData4 = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + str(indice-3).zfill(4) + '.png'
+        x = torch.from_numpy(np.array(imageio.imread(filePathData4)) / 255).view(1, 1, 480, 640).double()
+        y = torch.from_numpy(np.array(imageio.imread(filePathData3)) / 255).view(1, 1, 480, 640).double()
+        z = torch.from_numpy(np.array(imageio.imread(filePathData2)) / 255).view(1, 1, 480, 640).double()
+        targetTensor = torch.from_numpy(np.array(imageio.imread(filePathData1)) / 255).view(1, 1, 480, 640).double()
         if compteur < 100:
-            target_train.append(w.view(1,1,300))
-            data_train.append(torch.cat([x,y,z]).view(3,1,300))
+            target_train.append(modelCNN.encoder(targetTensor).view(1,1,300).float())
+            data_train.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,1,300).float())
         if compteur >= 100 and compteur < 122:
-            target_valid.append(w.view(1,1,300))
-            data_valid.append(torch.cat([x,y,z]).view(3,1,300))
+            target_valid.append(modelCNN.encoder(targetTensor).view(1,1,300).float())
+            data_valid.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,1,300).float())
         if compteur >= 122:
-            target_test.append(w.view(1,1,300))
-            data_test.append(torch.cat([x,y,z]).view(3,1,300))
+            target_test.append(modelCNN.encoder(targetTensor).view(1,1,300).float())
+            data_test.append(torch.cat([modelCNN.encoder(x),modelCNN.encoder(y),modelCNN.encoder(z)]).view(3,1,300).float())
     compteur += 1
+    print(compteur)
 print('Done loading data')
 # %%
 class LSTM_predictor(nn.Module):
@@ -64,7 +171,7 @@ class LSTM_predictor(nn.Module):
         return output[-1] #Possiblement besoin de reshape en 15,20 selon le target
     
 #%%
-net = LSTM_predictor()
+#net = LSTM_predictor()
 
 ## %%
 #data_train = []
@@ -126,7 +233,7 @@ def valid(model, valid_loader):
 #image = valeurs.detach().numpy().squeeze()
 
     valid_loss /= dataSize
-    print('\n' + "valid" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+    print('\n' + "valid" + ' set: Average loss: {:.15f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         valid_loss, correct, dataSize,
         100. * correct / dataSize))
     return 100. * correct / dataSize, valid_loss
@@ -145,7 +252,7 @@ def test(model, test_loader):
         if (1-loss.item()*100)>0.98:
             correct += 1
     test_loss /= dataSize
-    print('\n' + "Test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+    print('\n' + "Test" + ' set: Average loss: {:.15f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, dataSize,
         100. * correct / dataSize))
 
@@ -157,7 +264,9 @@ def experiment(model, epochs=10, lr=0.001):
     optimizer = optim.Adagrad(model.parameters(), lr=lr)
     for epoch in range(1, epochs + 1):
         print(epoch)
-        if epoch == int(0.65*epochs):
+        if epoch == int(0.5*epochs):
+            optimizer = optim.Adagrad(model.parameters(), lr=lr/10)
+        if epoch == int(0.75*epochs):
             optimizer = optim.Adagrad(model.parameters(), lr=lr/10)
         model, train_loss = train(model, data_train, optimizer)
         train_losses.append(train_loss)
@@ -195,5 +304,5 @@ for model in [LSTM_predictor()]:  # add your models in the list
         best_model = model
         
 test(model,data_test)
-torch.save(model.state_dict(), 'best_model_LSTM.pth')
+torch.save(model.state_dict(), 'best_model_LSTM_batch1.pth')
 
