@@ -17,6 +17,7 @@ import glob
 comb_fact = 0.2
 itteration_data = 1
 itteration_target = 1
+save = 0
 
 class CNNEncoderDecoderMoreFeatures(nn.Module):
     def __init__(self):
@@ -142,6 +143,8 @@ def LLE(output, maxY_t,max_X_t):
 # %%
 
 def test(CNN, LSTM, test_data, test_data_cnn, test_target):
+    CNN.eval()
+    LSTM.eval()
     test_loss = 0
     correct = 0
     dataSize = len(test_data)
@@ -168,13 +171,32 @@ def test(CNN, LSTM, test_data, test_data_cnn, test_target):
     test_loss /= dataSize
     print('\n' + "Test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, dataSize, 100. * correct / dataSize))
+
+def testCNN(model, test_loader):
+    model.eval()
+    test_loss = 0
+    correct = 0
+    dataSize = len(test_loader)
+    for batch_idx in range(dataSize):
+          #        data, target = Variable(valid_loader[batch_idx], volatile=True).cuda(),Variable(target_valid[batch_idx]).cuda() # if you have access to a gpu
+        data, target = Variable(test_loader[batch_idx], volatile=True), Variable(target_test_CNN[batch_idx])
+        output = model(data)
+        maxY_t, max_X_t = np.where(target.squeeze() == target.max())
+        loss = F.mse_loss(output, target) + LLE(output, maxY_t,max_X_t)
+        test_loss += loss.item()  # sum up batch loss
+        if loss.item() <= 15:
+            correct += 1;
+    test_loss /= dataSize
+    print('\n' + "Test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, dataSize,
+        100. * correct / dataSize))
 # %%
 #Load models
 CNN = CNNEncoderDecoderMoreFeatures()
 CNN.load_state_dict(torch.load('best_ED_300_mb1_morefeatures.pth'))
 
 LSTM = LSTM_predictor()
-LSTM.load_state_dict(torch.load('best_model_LSTM_batch1_morefeatures.pth'))
+LSTM.load_state_dict(torch.load('best_model_LSTM_batch1_morefeatures_test2.pth'))
 
 #Load data
 print('Loading data')
@@ -203,4 +225,5 @@ for im_path in fileNameTarget:
 print('Done loading data')
 
 #Run test
+testCNN(CNN,data_test_CNN)
 test(CNN,LSTM,data_test,data_test_CNN,target_test_CNN)
