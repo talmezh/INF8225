@@ -321,9 +321,9 @@ target_valid = []
 data_test = []
 target_test = []
 compteur = 0
-for im_path in glob.glob("C:/Users/Denis/Desktop/CIL1/Annotation/Output0/*.npy"):
+for im_path in glob.glob("C:/Users/DenisCorbin/Desktop/CIL1/Annotation/Output0/*.npy"):
     dataStr = im_path[im_path.find('\\') + 1:im_path.find('\\') + 5]
-    im_pathData = 'C:/Users/Denis/Desktop/CIL1/Data/' + dataStr + '.png'
+    im_pathData = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + dataStr + '.png'
     if compteur < 100 :
         target_train.append(torch.from_numpy(np.load(im_path)).view(1, 1, 480, 640).double())
         data_train.append(torch.from_numpy(np.array(imageio.imread(im_pathData)) / 255).view(1, 1, 480, 640).double())
@@ -520,13 +520,14 @@ for i in range(len(data_test)):
 save = 0
 print('DONE SAVING')
 #%% Saving model
-torch.save(model.state_dict(), 'best_ED_300_mb1_morefeatures.pth')
+#torch.save(model.state_dict(), 'best_ED_300_mb1_morefeatures.pth')
 
 
 #%% Loading model
-modeltest = CNNEncoderDecoder()
-modeltest.load_state_dict(torch.load('best_model.pth'))
-modeltest.eval()
+model = CNNEncoderDecoder()
+model.load_state_dict(torch.load('C:/Users/DenisCorbin/Documents/GitHub/INF8225/best_ED_300_mb5.pth'))
+model.eval()
+test(model,data_test)
 
 
 #%%
