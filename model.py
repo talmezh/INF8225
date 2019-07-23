@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import torch
-from torch.autograd import Variable
 import numpy as np
 import torch.nn.functional as F
 from torch import nn
@@ -11,7 +10,7 @@ import glob
 # test = torch.from_numpy(np.array(imageio.imread('C:/Users/DenisCorbin/Desktop/CIL-1/Data/0001.png'))).view(1,1,480,640).double()
 # conv = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double()
 # result = conv(test)
-batch_size = 1
+batch_size = 10
 save = 0
 #typeTrain = 0
 #typeValid = 0
@@ -221,68 +220,75 @@ class CNNEncoderDecoderMoreFeatures(nn.Module):
         self.itteration_target = itteration_target
         self.type = ''
         self.name = "Encoder Decoder CNN with more features"
+        self.enc_multi = [2, 2, 4, 4, 8, 16]
+        self.enc_multi = [item * 8 for item in self.enc_multi]
+        self.dec_multi = [16, 8, 4, 4, 2, 2]
+        self.dec_multi = [item * 8 for item in self.dec_multi]
+        print(self.enc_multi)
         self.encoder = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=2, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(2).double(),
+            nn.Conv2d(in_channels=1, out_channels=self.enc_multi[0], kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(self.enc_multi[0]).double(),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=2, out_channels=2, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(2).double(),
+            nn.Conv2d(in_channels=self.enc_multi[0], out_channels=self.enc_multi[1], kernel_size=3, stride=1,
+                      padding=1).double(),
+            nn.BatchNorm2d(self.enc_multi[1]).double(),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=2, out_channels=4, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(4).double(),
+            nn.Conv2d(in_channels=self.enc_multi[1], out_channels=self.enc_multi[2], kernel_size=3, stride=1,
+                      padding=1).double(),
+            nn.BatchNorm2d(self.enc_multi[2]).double(),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=4, out_channels=4, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(4).double(),
+            nn.Conv2d(in_channels=self.enc_multi[2], out_channels=self.enc_multi[3], kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(self.enc_multi[3]).double(),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=4, out_channels=8, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(8).double(),
+            nn.Conv2d(in_channels=self.enc_multi[3], out_channels=self.enc_multi[4], kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(self.enc_multi[4]).double(),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.Conv2d(in_channels=8, out_channels=8, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(8).double(),
+            nn.Conv2d(in_channels=self.enc_multi[4], out_channels=self.enc_multi[5], kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(self.enc_multi[5]).double(),
             nn.ReLU(inplace=True)
 
         )
         self.decoder = nn.Sequential(
-            nn.Conv2d(in_channels=8, out_channels=8, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(8).double(),
+            nn.Conv2d(in_channels=self.enc_multi[5], out_channels=self.dec_multi[0], kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(self.dec_multi[0]).double(),
             nn.ReLU(inplace=True),
 
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(in_channels=8, out_channels=4, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(4).double(),
+            nn.Conv2d(in_channels=self.dec_multi[0], out_channels=self.dec_multi[1], kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(self.dec_multi[1]).double(),
             nn.ReLU(inplace=True),
 
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(in_channels=4, out_channels=4, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(4).double(),
+            nn.Conv2d(in_channels=self.dec_multi[1], out_channels=self.dec_multi[2], kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(self.dec_multi[2]).double(),
             nn.ReLU(inplace=True),
 
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(in_channels=4, out_channels=2, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(2).double(),
+            nn.Conv2d(in_channels=self.dec_multi[2], out_channels=self.dec_multi[3], kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(self.dec_multi[3]).double(),
             nn.ReLU(inplace=True),
 
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(in_channels=2, out_channels=2, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(2).double(),
+            nn.Conv2d(in_channels=self.dec_multi[3], out_channels=self.dec_multi[4], kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(self.dec_multi[4]).double(),
             nn.ReLU(inplace=True),
 
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(in_channels=2, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
-            nn.BatchNorm2d(1).double(),
+            nn.Conv2d(in_channels=self.dec_multi[4], out_channels=self.dec_multi[5], kernel_size=3, stride=1, padding=1).double(),
+            nn.BatchNorm2d(self.dec_multi[5]).double(),
             nn.ReLU(inplace=True),
 
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=1).double(),
+            nn.Conv2d(in_channels=self.dec_multi[5], out_channels=1, kernel_size=3, stride=1, padding=1).double(),
             nn.BatchNorm2d(1).double(),
             nn.ReLU(inplace=True)
 
@@ -299,20 +305,6 @@ class CNNEncoderDecoderMoreFeatures(nn.Module):
         x = self.decoder(x)
         return x/x.max()
 
-
-# %%
-# model = CNNEncoderDecoder()
-# result = model(data_train[0])
-# epochs=10
-# lr=0.001
-# best_precision = 0
-# train_losses = []
-# valid_losses = []
-# valid_precision = []
-# optimizer = optim.Adam(model.parameters(), lr=lr)
-# model, train_loss = train(model, data_train, optimizer)
-
-# %%
 print('Loading data')
 data_train = []
 target_train = []
@@ -321,9 +313,9 @@ target_valid = []
 data_test = []
 target_test = []
 compteur = 0
-for im_path in glob.glob("C:/Users/DenisCorbin/Desktop/CIL1/Annotation/Output0/*.npy"):
-    dataStr = im_path[im_path.find('\\') + 1:im_path.find('\\') + 5]
-    im_pathData = 'C:/Users/DenisCorbin/Desktop/CIL1/Data/' + dataStr + '.png'
+for im_path in glob.glob("/home/talmezh/Documents/Data/CIL-01/Annotation/Output0/*.npy"):
+    dataStr = im_path.split('/')[-1][:-4]
+    im_pathData = '/home/talmezh/Documents/Data/CIL-01/Data/' + dataStr + '.png'
     if compteur < 100 :
         target_train.append(torch.from_numpy(np.load(im_path)).view(1, 1, 480, 640).double())
         data_train.append(torch.from_numpy(np.array(imageio.imread(im_pathData)) / 255).view(1, 1, 480, 640).double())
@@ -336,14 +328,6 @@ for im_path in glob.glob("C:/Users/DenisCorbin/Desktop/CIL1/Annotation/Output0/*
     compteur += 1
 print('Done loading data')
 
-#train_loader = torch.utils.data.DataLoader(data_train, batch_size=batch_size, shuffle=True)
-
-#torch.cat(torch.stack(data_train),torch.stack(target_train))
-#shuffle(target_train)
-#target_train = torch.stack(target_train)
-
-
-# %%
 
 def LLE(output, maxY_t,max_X_t):    
     pixel_sum = output.sum()
@@ -351,48 +335,44 @@ def LLE(output, maxY_t,max_X_t):
     #Calcul du x predit
     v_x = torch.arange(output.size(3)).double() #Vecteur allant de 0 a 639
     partial_sumx = torch.mv(output.squeeze(),v_x).sum() #Somme ponderee selon x
-#    for x in range(output.size(3)):
-#        partial_sumx_long += (output[0, 0, :, x].sum()) * x
     x_pred = partial_sumx / pixel_sum
     
     output_T = torch.transpose(output,2,3) #Transposition de la matrice
     v_y = torch.arange(output.size(2)).double()
     partial_sumy = torch.mv(output_T.squeeze(),v_y).sum()
-#    partial_sumy_long = 0
-#    for y in range(output.size(2)):
-#        partial_sumy_long += (output[0, 0, y, :].sum()) * y
+
     y_pred = partial_sumy / pixel_sum
 
     LLE = torch.sqrt((torch.from_numpy(max_X_t).double() - x_pred).pow(2) + (torch.from_numpy(maxY_t).double() - y_pred).pow(2))
-#    print(LLE.item(), max_X_t, maxY_t, x_pred.item(), y_pred.item())
     return LLE
 
 
 def train(model, train_loader, optimizer):
     model.train()
     train_loss = 0
-    loss = 0
+    # loss = 0
     dataSize = len(train_loader)
-    for batch_idx in range(int(dataSize)):
+    for batch_idx in range(int(dataSize/batch_size)):
         # data, target = Variable(data, volatile=True).cuda(), Variable(target).cuda() # if you have access to a gpu
-        data, target = Variable(train_loader[batch_idx]), Variable(target_train[batch_idx])
+        interval = [batch_idx * batch_size, (batch_idx + 1) * batch_size]
+        data, target = train_loader[interval[0]:interval[1]], target_train[interval[0]:interval[1]]
+        data = torch.stack(data).view(batch_size, 1, 480, 640).cuda()
+        target = torch.stack(target).view(batch_size, 1, 480, 640).cuda()
         optimizer.zero_grad()
         output = model(data)  # calls the forward function
         #output_np = output.detach().numpy().squeeze()
         #target_np = target.detach().numpy().squeeze()
         #position = np.where(target_np == target_np.max())
-        maxY_t, max_X_t = np.where(target.squeeze() == target.max())
-        loss += F.mse_loss(output, target) + LLE(output, maxY_t,max_X_t)
-        #t = time.time()
-        if batch_idx%batch_size==0:
-            loss /= batch_size
-            train_loss += loss.item()
-            loss.backward()
-            #print(time.time() - t)
-            optimizer.step()
-            loss = 0
+        #maxY_t, max_X_t = np.where(target.squeeze() == target.max())
+        loss = F.mse_loss(output, target)# + LLE(output, maxY_t,max_X_t)
+        #t = time.time():
+        #loss /= batch_size
+        train_loss += loss.item()
+        loss.backward()
+        optimizer.step()
+        loss = 0
     train_loss /= (dataSize / batch_size)
-    # print('\n' + "train" + ' set: Average loss: {:.4f}\n'.format(train_loss))
+    print('\n' + "train" + ' set: Average loss: {:.4f}\n'.format(train_loss))
     return model, train_loss
 
 
@@ -402,11 +382,10 @@ def valid(model, valid_loader):
     correct = 0
     dataSize = len(valid_loader)
     for batch_idx in range(dataSize):
-        #        data, target = Variable(valid_loader[batch_idx], volatile=True).cuda(),Variable(target_valid[batch_idx]).cuda() # if you have access to a gpu
-        data, target = Variable(valid_loader[batch_idx], volatile=True), Variable(target_valid[batch_idx])
+        data, target = valid_loader[batch_idx].cuda(), target_valid[batch_idx].cuda() # if you have access to a gpu
         output = model(data)
-        maxY_t, max_X_t = np.where(target.squeeze() == target.max())
-        loss = F.mse_loss(output, target) + LLE(output, maxY_t,max_X_t)
+        #maxY_t, max_X_t = np.where(target.squeeze() == target.max())
+        loss = F.mse_loss(output, target)# + LLE(output, maxY_t,max_X_t)
         valid_loss += loss.item()  # sum up batch loss
         if loss.item() <= 15:
             correct += 1;
@@ -423,14 +402,13 @@ def test(model, test_loader):
     correct = 0
     dataSize = len(test_loader)
     for batch_idx in range(dataSize):
-          #        data, target = Variable(valid_loader[batch_idx], volatile=True).cuda(),Variable(target_valid[batch_idx]).cuda() # if you have access to a gpu
-        data, target = Variable(test_loader[batch_idx], volatile=True), Variable(target_test[batch_idx])
+        data, target = test_loader[batch_idx].cuda(), target_test[batch_idx].cuda() # if you have access to a gpu
         output = model(data)
-        maxY_t, max_X_t = np.where(target.squeeze() == target.max())
-        loss = F.mse_loss(output, target) + LLE(output, maxY_t,max_X_t)
+        #maxY_t, max_X_t = np.where(target.squeeze() == target.max())
+        loss = F.mse_loss(output, target)# + LLE(output, maxY_t,max_X_t)
         test_loss += loss.item()  # sum up batch loss
         if loss.item() <= 15:
-            correct += 1;
+            correct += 1
     test_loss /= dataSize
     print('\n' + "Test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, dataSize,
@@ -444,8 +422,8 @@ def experiment(model, epochs=10, lr=0.001):
     valid_precision = []
     optimizer = optim.Adagrad(model.parameters(), lr=lr)
     for epoch in range(1, epochs + 1):
-        if epoch == int(0.75*epochs):
-            optimizer = optim.Adagrad(model.parameters(), lr=lr/10)
+        # if epoch == int(0.75*epochs):
+        #     optimizer = optim.Adagrad(model.parameters(), lr=lr/10)
         print(epoch)
         model, train_loss = train(model, data_train, optimizer)
         train_losses.append(train_loss)
@@ -476,58 +454,58 @@ def experiment(model, epochs=10, lr=0.001):
 # %%
 best_precision = 0
 for model in [CNNEncoderDecoderMoreFeatures()]:  # add your models in the list
-    #    model.cuda()  # if you have access to a gpu
-    model, precision = experiment(model, epochs=300, lr=0.01)
+    model = model.cuda()  # if you have access to a gpu
+    model, precision = experiment(model, epochs=3, lr=0.001)
 test(model,data_test)
 
 
-#%% Saving intermediate values
-print('SAVING')
-save = 1
-
-# Train
-#typeTrain = 1
-for i in range(len(data_train)):
-    typeTarget = 1
-    model(target_train[i])
-    typeTarget = 0
-    typeData = 1
-    model(data_train[i])
-    typeData = 0
-#typeTrain = 0
-
-# Valid
-#typeValid = 1
-for i in range(len(data_valid)):
-    typeTarget = 1
-    model(target_valid[i])
-    typeTarget = 0
-    typeData = 1
-    model(data_valid[i])
-    typeData = 0
-#typeValid = 0
-
-# Test
-#typeTest = 1
-for i in range(len(data_test)):
-    typeTarget = 1
-    model(target_test[i])
-    typeTarget = 0
-    typeData = 1
-    model(data_test[i])
-    typeData = 0
-#typeTest= 0
-save = 0
-print('DONE SAVING')
-#%% Saving model
-#torch.save(model.state_dict(), 'best_ED_300_mb1_morefeatures.pth')
-
-
-#%% Loading model
-model = CNNEncoderDecoder()
-model.load_state_dict(torch.load('C:/Users/DenisCorbin/Documents/GitHub/INF8225/best_ED_300_mb5.pth'))
-model.eval()
-test(model,data_test)
+# #%% Saving intermediate values
+# print('SAVING')
+# save = 1
+#
+# # Train
+# #typeTrain = 1
+# for i in range(len(data_train)):
+#     typeTarget = 1
+#     model(target_train[i])
+#     typeTarget = 0
+#     typeData = 1
+#     model(data_train[i])
+#     typeData = 0
+# #typeTrain = 0
+#
+# # Valid
+# #typeValid = 1
+# for i in range(len(data_valid)):
+#     typeTarget = 1
+#     model(target_valid[i])
+#     typeTarget = 0
+#     typeData = 1
+#     model(data_valid[i])
+#     typeData = 0
+# #typeValid = 0
+#
+# # Test
+# #typeTest = 1
+# for i in range(len(data_test)):
+#     typeTarget = 1
+#     model(target_test[i])
+#     typeTarget = 0
+#     typeData = 1
+#     model(data_test[i])
+#     typeData = 0
+# #typeTest= 0
+# save = 0
+# print('DONE SAVING')
+# #%% Saving model
+# #torch.save(model.state_dict(), 'best_ED_300_mb1_morefeatures.pth')
+#
+#
+# #%% Loading model
+# model = CNNEncoderDecoder()
+# model.load_state_dict(torch.load('C:/Users/DenisCorbin/Documents/GitHub/INF8225/best_ED_300_mb5.pth'))
+# model.eval()
+# test(model,data_test)
 
 
 #%%

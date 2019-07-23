@@ -1,6 +1,6 @@
 import numpy as np
 import os
-import scipy.misc
+#import scipy.misc
 import pandas as pd
 
 
@@ -77,7 +77,7 @@ def multivariate_gaussian(pos, mu, Sigma):
 
 if __name__ == "__main__":
     #Annotation file directory
-    annotation_dir = "C:/Users/talmezh/Desktop/Annee4/H19/IA 2/CIL-2/Annotation"
+    annotation_dir = "/home/talmezh/Documents/Data/CIL-01/Annotation"
     
     
     #Find all annotation files in directory
